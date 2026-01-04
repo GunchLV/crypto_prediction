@@ -14,12 +14,13 @@ pd.set_option("display.precision", 2)
 # šī daļa ir brīvi maināma, bet šobrīd ir saregulēta uz maksimāli labāko precizitāti
 dienas = 1
 pieaugums = 2  # %
-custom_treshold = 0.5
+custom_treshold = 0.49
 robezas_datums = '2025-11-01'
 rolling_for_max = 12
 papildus_svars_tiem_kas_mazak = 0.27
 stochastic_range = 24
 stochastic_smooter = 3
+min_max_extra_jutiba = 1
 # ----------------------------------------------------------------------------------
 
 # popular_crypto =['BTC-USD','ETH-USD','SOL-USD','ADA-USD','BNB-USD', 'ADA-USD', 'DOGE-USD', 'AVAX-USD', 'LTC-USD']
@@ -87,7 +88,13 @@ model = RandomForestClassifier(n_estimators=200, max_depth=10, min_samples_leaf=
 model.fit(X_train, y_train)
 predicted_prob = model.predict_proba(X_test)[:, 1]
 
-y_pred = (predicted_prob >= custom_treshold).astype(int) # Apply custom threshold
+prognozes_varbutibas = pd.DataFrame({'prognoze':list(predicted_prob)})
+prognozes_varbutibas['max_vid'] = prognozes_varbutibas['prognoze'].rolling(rolling_izmers).max() / prognozes_varbutibas['prognoze'].rolling(rolling_izmers).min() - prognozes_varbutibas['prognoze']
+prognozes_varbutibas['prognoze'] = np.where(prognozes_varbutibas['max_vid']>min_max_extra_jutiba,
+                                            prognozes_varbutibas['prognoze']+prognozes_varbutibas['max_vid'],prognozes_varbutibas['prognoze'])
+
+# y_pred = (predicted_prob >= custom_treshold).astype(int) # Apply custom threshold
+y_pred = (np.where(prognozes_varbutibas['prognoze'] >= custom_treshold,1,0)).astype(int) # Apply custom threshold
 
 df_test = df.loc[y_test.index].copy()
 df_test['Predicted_up'] = y_pred
