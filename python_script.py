@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 import plotly.graph_objects as go
 from sklearn.utils.class_weight import compute_class_weight
+from datetime import date, timedelta
 pd.set_option("display.precision", 2)
 
 
@@ -23,7 +24,8 @@ stochastic_smooter = 3
 
 # popular_crypto =['BTC-USD','ETH-USD','SOL-USD','ADA-USD','BNB-USD', 'ADA-USD', 'DOGE-USD', 'AVAX-USD', 'LTC-USD']
 ticker = "BTC-USD"  # or "BTC-USD", "SOL1-USD", etc.
-df = yf.Ticker(ticker).history(start="2024-01-01", end="2025-12-28", interval="1h").reset_index()
+df = yf.Ticker(ticker).history(start=(date.today() - timedelta(days=700)).strftime('%Y-%m-%d'),
+                               end=date.today().strftime('%Y-%m-%d'), interval="1h").reset_index()
 df['Close'] = df['Close'].astype(float)
 
 df['Future_Close'] = df['Close'].shift(-dienas*24).rolling(rolling_for_max).max()
