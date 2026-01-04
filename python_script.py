@@ -14,7 +14,7 @@ pd.set_option("display.precision", 2)
 # šī daļa ir brīvi maināma, bet šobrīd ir saregulēta uz maksimāli labāko precizitāti
 dienas = 1
 pieaugums = 2  # %
-custom_treshold = 0.49
+custom_treshold = 0.53
 robezas_datums = '2025-11-01'
 rolling_for_max = 12
 papildus_svars_tiem_kas_mazak = 0.27
@@ -25,7 +25,7 @@ min_max_extra_jutiba = 1
 
 # popular_crypto =['BTC-USD','ETH-USD','SOL-USD','ADA-USD','BNB-USD', 'ADA-USD', 'DOGE-USD', 'AVAX-USD', 'LTC-USD']
 ticker = "BTC-USD"  # or "BTC-USD", "SOL1-USD", etc.
-df = yf.Ticker(ticker).history(start=(date.today() - timedelta(days=700)).strftime('%Y-%m-%d'),
+df = yf.Ticker(ticker).history(start=(date.today() - timedelta(days=700)).strftime('%Y-%m-%d'), # yahoo stundas datiem maksimums ir 730 dienas
                                end=date.today().strftime('%Y-%m-%d'), interval="1h").reset_index()
 df['Close'] = df['Close'].astype(float)
 
@@ -45,6 +45,10 @@ df['cik_dienas_jau_uz_leju'] = cik_dienas_jau_uz_leju
 df['cik_dienas_jau_uz_augsu'] = cik_dienas_jau_uz_augsu
 df['uz_augsu_streak_delta'] = (df['cik_dienas_jau_uz_augsu'] - df['cik_dienas_jau_uz_augsu'].shift(1))
 df['uz_leju_streak_delta'] = (df['cik_dienas_jau_uz_leju'] - df['cik_dienas_jau_uz_leju'].shift(1))
+
+
+is_local_max = df['Close'] == df['Close'].rolling(48).max()
+df['hours_since_high'] = is_local_max[::-1].cumsum()[::-1]
 
 
 df['High_Low'] = (df['High'] - df['Low']) / df['Low'] # stundas diapazons %
